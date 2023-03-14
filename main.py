@@ -1,7 +1,7 @@
 import re
 from functools import reduce
 from typing import List
-
+import cProfile
 
 def readfile() -> str:
     with open("./resources/sql_with_comments.sql", "r") as file:
@@ -38,8 +38,27 @@ def create_list_of_cte_s(sql: str) -> List[str]:
     return cte_s
 
 
-def last_select_processing(sql: str, res: dict) -> dict:
-    pass
+def columns_string_processing(columns_string: str) -> List[str]:
+    raw_columns: List[str] = columns_string.split(",")
+    result = list(map(lambda x: re.match(r"\w+", x.strip()).group(0), raw_columns))
+    return result
+
+
+def last_select_processing(sql: str, res: dict) -> None:
+    # TODO complete this function
+    groups = re.search(r"SELECT +(?P<columns>.+)FROM +(?P<table_name>\w+) .+", sql)
+    columns_string, table_name = groups['columns'], groups['table_name']
+
+    if table_name in res:
+        index_of_second_point = res[table_name][0].rfind(".")
+        table_name = res[table_name][0][:index_of_second_point]
+    else:
+        pass
+
+    columns = columns_string_processing(columns_string)
+    final_columns = list(map(lambda x: table_name + "." + x, columns))
+    res.update({"FINAL_SELECT": final_columns})
+
 
 
 def main():
@@ -48,11 +67,11 @@ def main():
     res = reduce(lambda x, y: {**x, **single_cte_processing(y)}, cte_s, {})
     print(res)
 
-    last_select_postion = content.rfind("SELECT")
-    last_select = content[last_select_postion:]
-    print(last_select)
-    res = last_select_processing(last_select, res)
+    last_select_position = content.rfind("SELECT")
+    last_select = content[last_select_position:]
+    last_select_processing(last_select, res)
+    print(res)
 
 
 if __name__ == "__main__":
-    main()
+    cProfile.run("main()", sort="cumtime")
