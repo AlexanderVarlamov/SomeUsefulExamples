@@ -3,6 +3,7 @@ from functools import reduce
 from typing import List
 import cProfile
 
+
 def readfile() -> str:
     with open("./resources/sql_with_comments.sql", "r") as file:
         return file.read().upper().replace("\n", " ")
@@ -60,7 +61,6 @@ def last_select_processing(sql: str, res: dict) -> None:
     res.update({"FINAL_SELECT": final_columns})
 
 
-
 def main():
     content = readfile()
     cte_s = create_list_of_cte_s(content)
@@ -70,7 +70,7 @@ def main():
     last_select_position = content.rfind("SELECT")
     last_select = content[last_select_position:]
     last_select_processing(last_select, res)
-    print(res)
+    print(res["FINAL_SELECT"])
 
 
 if __name__ == "__main__":
