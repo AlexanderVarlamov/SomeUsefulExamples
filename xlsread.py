@@ -20,11 +20,11 @@ for i in range(1, number_of_columns):
     salary_to_append = 0
     for j in range(1, number_of_rows):
         salary_to_append += sh.row_values(j)[i]
-    average_salaries.append(salary_to_append/number_of_rows-1)
+    average_salaries.append(salary_to_append / number_of_rows - 1)
 
 index_of_max_salary = average_salaries.index(max(average_salaries))
 
 index_of_max = medians.index(max(medians))
 print(f"Best region is: {regions[index_of_max]}")
 print(f"Best job is: {jobs[index_of_max_salary]}")
-print(regions[index_of_max] + " " +  jobs[index_of_max_salary])
+print(regions[index_of_max] + " " + jobs[index_of_max_salary])
