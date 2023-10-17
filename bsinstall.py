@@ -8,3 +8,4 @@ html = resp.read().decode('utf8')  # считываем содержимое
 soup = BeautifulSoup(html, 'html.parser')  # делаем суп
 res = 0
 print(soup.get_text())
+
