@@ -32,6 +32,3 @@ a = 999
 b = 998 + 1
 print(a is b)
 print(round(0.3-0.2, 2))
-#1232
-#224145kl34534
-#gfgdffdfgsd
