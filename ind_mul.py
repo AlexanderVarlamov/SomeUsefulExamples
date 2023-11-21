@@ -32,3 +32,6 @@ a = 999
 b = 998 + 1
 print(a is b)
 print(round(0.3-0.2, 2))
+
+xx = lambda x: sum([1, x])
+print(xx(6))
