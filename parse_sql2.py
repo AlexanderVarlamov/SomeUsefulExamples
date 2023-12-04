@@ -12,7 +12,7 @@ from typing import List, Optional
 from sqlglot import parse_one, exp
 from sqlglot.optimizer import optimize
 
-FILENAME = "sql_to_parse.sql"
+FILENAME = "script1.sql"
 
 PREDICATES_DICT = {
     "=": "eq",
@@ -32,16 +32,25 @@ result = {}
 
 
 def find_predicates(filename: str):
-    with open("sql_to_parse.sql", "r") as file:
+    with open(filename, "r") as file:
         content = file.read()
 
-    parsed_one = optimize(parse_one(content, read="postgres"), dialect="oracle")
+    # parsed_one = optimize(parse_one(content, read="postgres"), dialect="postgres")
+    parsed_one = parse_one(content, read="postgres")
     with open("optimized.sql", "w") as file:
         file.write(parsed_one.sql(pretty=True))
 
+    tables = set()
+    aliases = set()
     for table in parsed_one.find_all(exp.Table):
+        tables.update({table.name})
+        aliases.update({table.alias})
         keys.update({table.alias_or_name.lower(): table.name.lower()})
         result.update({table.name.lower(): {"alias": table.alias_or_name.lower(), "predicates": []}})
+
+    print(*tables, sep='\n')
+    print('alias')
+    print(*aliases, sep='\n')
 
     predicates: list[str] = []
     for join_or_where in parsed_one.find_all(exp.Join, exp.Where):
@@ -57,17 +66,20 @@ def find_column_dependencies(txt_predicates) -> Optional[List[str]]:
     for predicate in txt_predicates:
         m = re.match(regex, predicate)
         if m:
-            if m.group("alias_main") in keys:
-                table_name = keys[m.group("alias_main")]
-                column = m.group("column")
-                pred = PREDICATES_DICT[m.group("predicate")] if m.group("predicate") in PREDICATES_DICT else "n/a"
-                alias_depends = keys[m.group("alias_depends")]
-                column_depends = m.group("column_depends")
-                result[table_name]["predicates"].append(
-                    {"column": column, "predicate": pred, "depends_on": f"{alias_depends}.{column_depends}"})
-                result[alias_depends]["predicates"].append(
-                    {"column": column_depends, "predicate": pred, "depends_on": f"{table_name}.{column}"}
-                )
+            try:
+                if m.group("alias_main") in keys:
+                    table_name = keys[m.group("alias_main")]
+                    column = m.group("column")
+                    pred = PREDICATES_DICT[m.group("predicate")] if m.group("predicate") in PREDICATES_DICT else "n/a"
+                    alias_depends = keys[m.group("alias_depends")]
+                    column_depends = m.group("column_depends")
+                    result[table_name]["predicates"].append(
+                        {"column": column, "predicate": pred, "depends_on": f"{alias_depends}.{column_depends}"})
+                    result[alias_depends]["predicates"].append(
+                        {"column": column_depends, "predicate": pred, "depends_on": f"{table_name}.{column}"}
+                    )
+            except:
+                maybe_literals.append(predicate)
         else:
             maybe_literals.append(predicate)
 
